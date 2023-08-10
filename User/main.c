@@ -195,7 +195,7 @@ uint8_t bufData[4] = {1, 2, 3, 4};
 void EXTI0_IRQHandler(void)
 {
     GPIO_WriteBit(GPIOC, GPIO_Pin_2, Bit_SET);
-    Command_Frame actualComm = CommFIFO_GetData();
+    UPPM_Command_Frame actualComm = CommFIFO_GetData();
 
 //    UART_WriteData(UART_NUM1, &actualComm.index, 4);
 //    UART_WriteData(UART_NUM2, &actualComm.TVRS, 4);

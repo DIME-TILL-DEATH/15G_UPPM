@@ -1,16 +1,12 @@
-#ifndef USER_PROTOCOL_COMMAND_FRAME_H_
-#define USER_PROTOCOL_COMMAND_FRAME_H_
+#ifndef USER_PROTOCOL_UPPM_COMMAND_FRAME_H_
+#define USER_PROTOCOL_UPPM_COMMAND_FRAME_H_
 
 #include <stdint.h>
 #include "frame_defines.h"
 
 
-#define COMMAND_DATA_POS 64
-
-#define OSL_PS_POS 91
-
-#define BUFFER_SIZE_LW_POS 115
-#define QUEUE_SIZE_LW_POS 123
+#define UPPM_BUFFER_SIZE_LW_POS FRAME_HEADER_SIZE + 28*4 + 3//131 - low 8 bits of 28 word32
+#define UPPM_QUEUE_SIZE_LW_POS FRAME_HEADER_SIZE + 30*4 + 3 //139
 
 typedef struct
 {
@@ -54,32 +50,53 @@ typedef struct
    //word 15, [32:0]
    uint32_t TVRS;  // §´§Ó§â§ã
 
-   //word 16, [32:0]
-   uint32_t reserved7;
+   //word 16, [32:8]
+   uint8_t reserved7;
+   uint8_t reserved8;
+   uint8_t reserved9;
+
+   //word 16, [7:0]
+   uint8_t PRM      :1; //§±§²§®
+   uint8_t FILTR    :2; //§¶§ª§­§¾§´§²
+   uint8_t VUM      :1; //§£§µ§®
+   uint8_t reserved10   :4;
 
    //word 17, [32:0]
-   uint32_t reserved8;
+   uint8_t KOEF4    :8;
+   uint8_t KOEF3    :8;
+   uint8_t KOEF2    :8;
+   uint8_t KOEF1    :8;
 
    //word 18
-   uint8_t reserved9  :8;
-   uint8_t reserved10     :8;
-   uint8_t reserved11     :8;
-   uint8_t OSL_PS     :8;     // §°§ã§Ý.§±§ã
+   uint32_t DVRS; //§¥§£§²§³
 
    //word 19, [32:0]
-   uint32_t reserved12;
+   uint32_t TNO; //§´§¯§°
 
    //word 20, [32:0]
-   uint32_t reserved13;
+   uint32_t azimut; //§¡§Ù§Ú§Þ§å§ä
 
    //word 21, [32:0]
-   uint32_t timestamp_hw;
+   uint32_t Tev_HIGH; //§´§Ö§Ó [64:32]
 
    //word 22, [32:0]
-   uint32_t timestamp_mw;
+   uint32_t Tev_LOW; //§´§Ö§Ó [32:0]
 
    //word 23, [32:0]
-   uint32_t timestamp_lw;
-}Command_Frame;
+   uint16_t KPK; //§¬§±§¬
+   uint16_t Hpl; // §·§á§Ý
 
-#endif /* USER_PROTOCOL_COMMAND_FRAME_H_ */
+   //word 24, [32:0]
+   uint32_t reserved11;
+
+   //word 25, [32:0]
+   uint32_t timestamp_hw;
+
+   //word 26, [32:0]
+   uint32_t timestamp_mw;
+
+   //word 27, [32:0]
+   uint32_t timestamp_lw;
+}UPPM_Command_Frame;
+
+#endif /* USER_PROTOCOL_UPPM_COMMAND_FRAME_H_ */
