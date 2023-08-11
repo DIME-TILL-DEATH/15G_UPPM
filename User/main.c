@@ -20,6 +20,8 @@ void TIM3_IRQHandler(void)  __attribute__((interrupt(/*"WCH-Interrupt-fast"*/)))
 
 bool ledState=0;
 
+uint8_t framesCounter = 0;
+
 void PIN_Init()
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
