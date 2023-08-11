@@ -122,7 +122,7 @@ int main(void)
 	Delay_Init();
 	USART_Printf_Init(115200);
 
-	printf("UDP client. Recieving control frames for FSGP\r\n");
+	printf("UDP client. Recieving control frames for UPPM\r\n");
 	printf("SystemClk: %d\r\n",SystemCoreClock);
 	printf( "ChipID: %08x\r\n", DBGMCU_GetCHIPID() );
 
@@ -186,7 +186,7 @@ void TIM3_IRQHandler()
         GPIO_WriteBit(GPIOC, GPIO_Pin_11, Bit_RESET);
     }
 
-    ETHERNET_SendFdkFrame();
+   // ETHERNET_SendFdkFrame();
 
     TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 }

@@ -4,9 +4,12 @@
 #include <stdint.h>
 #include "frame_defines.h"
 
+#define UPPM_BUFFER_SIZE_LW_POS FRAME_HEADER_SIZE + 28*WORD128_BYTE_SIZE + LOW_WORD_OFFSET//131 - low 8 bits of 28 word32
+#define UPPM_QUEUE_SIZE_LW_POS FRAME_HEADER_SIZE + 30*WORD128_BYTE_SIZE + LOW_WORD_OFFSET //139
 
-#define UPPM_BUFFER_SIZE_LW_POS FRAME_HEADER_SIZE + 28*4 + 3//131 - low 8 bits of 28 word32
-#define UPPM_QUEUE_SIZE_LW_POS FRAME_HEADER_SIZE + 30*4 + 3 //139
+// Fields value
+#define UPPM_ACKFRAME_AUX_DATA_POS128 7
+#define UPPM_ACKFRAME_DATA_SIZE128 1
 
 typedef struct
 {

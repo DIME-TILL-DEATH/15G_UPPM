@@ -7,6 +7,7 @@ typedef struct
 {
     uint16_t serial;
     uint8_t dataByte;
+    uint8_t ppmNumber;
 }SavedData;
 
 void VEEPROM_Init();
