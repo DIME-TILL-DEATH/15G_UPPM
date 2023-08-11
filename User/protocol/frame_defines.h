@@ -31,10 +31,11 @@ typedef struct
     uint8_t TK;
 
     uint32_t RK;
+
     uint8_t SCH;
 
-    uint8_t reserved1   :7;
     uint8_t PF          :1;
+    uint8_t reserved1   :7;
 
     uint16_t RF128;
     uint32_t NF;

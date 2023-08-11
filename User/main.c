@@ -10,6 +10,7 @@
 
 #include "uart.h"
 #include "ethernet.h"
+#include "veeprom.h"
 
 #include "command_fifo.h"
 #include "frame_parser.h"
@@ -128,6 +129,7 @@ int main(void)
 	printf("SystemClk: %d\r\n",SystemCoreClock);
 	printf( "ChipID: %08x\r\n", DBGMCU_GetCHIPID() );
 
+	VEEPROM_Init();
 	PIN_Init();
 	ETHERNET_Init();
 
@@ -188,7 +190,7 @@ void TIM3_IRQHandler()
         GPIO_WriteBit(GPIOC, GPIO_Pin_11, Bit_RESET);
     }
 
-   // ETHERNET_SendFdkFrame();
+    ETHERNET_SendFdkFrame();
 
     TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 }

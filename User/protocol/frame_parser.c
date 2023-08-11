@@ -50,6 +50,7 @@ void parseFrame(const uint8_t* inData, uint32_t inDataLen, uint8_t* outData, uin
         datagramHeader.structData.LAYOUT_SIZE128 = 3;
         datagramHeader.structData.RTK = VEEPROM_GetSavedData().ppmNumber;
         datagramHeader.structData.TK = UPPM_ACK_FRAME;
+        datagramHeader.structData.RK = __builtin_bswap32(*outDataLen - FRAME_HEADER_SIZE);
 
         datagramHeader.structData.CTRL_OFFSET128 = __builtin_bswap32(UPPM_ACKFRAME_CTRL_OFFSET128);
         datagramHeader.structData.CTRL_SIZE128 = __builtin_bswap32(UPPM_ACKFRAME_CTRL_SIZE128);
@@ -82,7 +83,6 @@ void getFdkPayload(uint8_t* data_ptr, uint16_t* dataLen_ptr)
 
     uint32_t datagramSize = FRAME_HEADER_SIZE + DATAGRAM_HEADER_SIZE + UPPM_FDKFRAME_SIZE;
 
-    //data_ptr[HEADER_FRAME_TYPE_POS] = UPPM_FDK_FRAME;
     FrameHeader frameHeader;
     memset(frameHeader.rawData, 0, FRAME_HEADER_SIZE);
 
@@ -102,6 +102,7 @@ void getFdkPayload(uint8_t* data_ptr, uint16_t* dataLen_ptr)
     datagramHeader.structData.LAYOUT_SIZE128 = 3;
     datagramHeader.structData.RTK = VEEPROM_GetSavedData().ppmNumber;
     datagramHeader.structData.TK = UPPM_FDK_FRAME;
+    datagramHeader.structData.RK = __builtin_bswap32(datagramSize - FRAME_HEADER_SIZE);
 
     datagramHeader.structData.CTRL_OFFSET128 = __builtin_bswap32(UPPM_FDKFRAME_CTRL_OFFSET128);
     datagramHeader.structData.CTRL_SIZE128 = __builtin_bswap32(UPPM_FDKFRAME_CTRL_SIZE128);

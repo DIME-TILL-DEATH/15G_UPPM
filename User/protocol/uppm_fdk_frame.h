@@ -13,23 +13,24 @@
 typedef struct
 {
     //word1[32:24]
-    uint8_t reserved1   :4;
     uint8_t tempPpm1    :1;
     uint8_t tempPpm2    :1;
     uint8_t tempPpm3    :1;
     uint8_t tempPpm4    :1;
+    uint8_t reserved1   :4;
 
     //word1[24:16]
-    uint8_t reserved2   :4;
     uint8_t statCh1    :1;
     uint8_t statCh2    :1;
     uint8_t statCh3    :1;
     uint8_t statCh4    :1;
+    uint8_t reserved2   :4;
 
     //word1[15:0]
     uint8_t reserved3;
-    uint8_t reserved4   :7;
+
     uint8_t osPpm       :1;
+    uint8_t reserved4   :7;
 
     //word2[32:0]
     uint16_t reserved5;
@@ -46,18 +47,18 @@ typedef struct
     uint16_t reserved6;
 
     //word4[15:8]
-    uint8_t reserved7   :4;
-    uint8_t RKsM4   :1;
-    uint8_t RKsM3   :1;
-    uint8_t RKsM2   :1;
     uint8_t RKsM1   :1;
+    uint8_t RKsM2   :1;
+    uint8_t RKsM3   :1;
+    uint8_t RKsM4   :1;
+    uint8_t reserved7   :4;
 
     //word4[7:0]
-    uint8_t reserved8   :4;
-    uint8_t SsM4   :1;
-    uint8_t SsM3   :1;
-    uint8_t SsM2   :1;
     uint8_t SsM1   :1;
+    uint8_t SsM2   :1;
+    uint8_t SsM3   :1;
+    uint8_t SsM4   :1;
+    uint8_t reserved8   :4;
 }UPPM_FDK_Frame_struct;
 
 typedef union
