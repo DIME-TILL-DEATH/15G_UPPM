@@ -133,6 +133,8 @@ int main(void)
 	PIN_Init();
 	ETHERNET_Init();
 
+	printf("Device serial: %d, ppm number: %d\r\n", VEEPROM_GetSavedData().serial, VEEPROM_GetSavedData().ppmNumber);
+
     UART_Init();
     TIM3_Init();
     INT_Init();
@@ -158,7 +160,9 @@ int main(void)
             switch(frameType)
             {
             case FRAME_TYPE_ARP:
+            {
                 ETHERNET_ParseArpFrame(&recievedFrameData);
+            }
                 break;
 
             case FRAME_TYPE_IPv4:
@@ -219,7 +223,6 @@ void EXTI0_IRQHandler(void)
 
     EXTI_ClearITPendingBit(EXTI_Line0);
     printf("INP recieved. TVRS: %d Commands left: %d\r\n", actualComm.TVRS, CommFIFO_Count());
-
 }
 
 void EXTI15_10_IRQHandler(void)
