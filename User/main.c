@@ -159,10 +159,10 @@ int main(void)
 
             switch(frameType)
             {
-            case FRAME_TYPE_ARP:
-            {
-                ETHERNET_ParseArpFrame(&recievedFrameData);
-            }
+                case FRAME_TYPE_ARP:
+                {
+                    ETHERNET_ParseArpFrame(&recievedFrameData);
+                }
                 break;
 
             case FRAME_TYPE_IPv4:

@@ -3,8 +3,6 @@
 
 #include <debug.h>
 
-#define SAVE_PAGE_ADDR  ((uint32_t)0x0800F000) /* Start from 60K */
-
 typedef struct
 {
     uint16_t serial;
@@ -16,5 +14,9 @@ void VEEPROM_Init();
 
 SaveData VEEPROM_GetSavedData();
 void VEEPROM_SaveData(const SaveData* dataStruct);
+
+
+extern uint32_t _user_data_start;
+extern uint32_t _user_data_end;
 
 #endif /* USER_VEEPROM_H_ */

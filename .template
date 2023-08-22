@@ -1,6 +1,6 @@
 Mcu Type=CH32V30x
 Address=0x08000000
-Erase All=true
+Erase All=false
 Program=true
 Verify=true
 Reset=true
@@ -15,4 +15,4 @@ Description=Website: http://www.wch.cn/products/CH32V307.html?\nROM(byte): 288K,
 PeripheralVersion=2.0
 MCU=CH32V307VCT6
 CLKSpeed=1
-Target Path=obj/15G_UPPM.hex
+Target Path=obj\15G_UPPM.hex

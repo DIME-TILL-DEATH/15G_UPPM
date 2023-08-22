@@ -46,4 +46,5 @@ encoding//User/protocol/uppm_command_frame.h=GBK
 encoding//User/protocol/uppm_fdk_frame.h=GBK
 encoding//User/veeprom.c=GBK
 encoding//User/veeprom.h=GBK
+encoding//obj/15G_UPPM.map=GBK
 encoding/README.md=GBK

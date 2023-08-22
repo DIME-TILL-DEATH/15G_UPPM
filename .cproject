@@ -91,6 +91,7 @@
 									<listOptionValue builtIn="false" value="m"/>
 									<listOptionValue builtIn="false" value="wchnet"/>
 								</option>
+								<option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.printmap.267972485" name="Print link map (-Xlinker --print-map)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.printmap" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.linker.input.1859223768" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -210,4 +211,5 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="refreshScope"/>
 </cproject>

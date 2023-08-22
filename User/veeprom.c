@@ -1,10 +1,18 @@
 #include "veeprom.h"
 
+uint8_t userConfig[64] __attribute__ ((section(".user_data")));
+
 SaveData deviceData;
+
+uint32_t userDataStartAddress = (uint32_t)&_user_data_start;
 
 void VEEPROM_Init()
 {
-    deviceData = *(__IO SaveData *)SAVE_PAGE_ADDR;
+    userDataStartAddress += 0x8000000;
+
+    deviceData = *(__IO SaveData *)userDataStartAddress;
+
+    printf("user data start addr: %x, end addr: %x\r\n", userDataStartAddress, &_user_data_end);
 }
 
 SaveData VEEPROM_GetSavedData()
@@ -21,9 +29,9 @@ void VEEPROM_SaveData(const SaveData* dataStruct)
     FLASH_Unlock();
     FLASH_ClearFlag(FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_WRPRTERR);
 
-    FLASH_Status result = FLASH_ErasePage(SAVE_PAGE_ADDR); //Erase 4KB
+    FLASH_Status result = FLASH_ErasePage(userDataStartAddress); //Erase 4KB
 
-    uint32_t Address = SAVE_PAGE_ADDR;
+    uint32_t Address = userDataStartAddress;
 
     int16_t dataSize = sizeof(*dataStruct);
 
