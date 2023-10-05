@@ -7,6 +7,7 @@
 #define WORD128_WORD32_SIZE 4
 
 #define FRAME_HEADER_SIZE 4*WORD32_BYTE_SIZE   // four 32 bit words
+#define DATAGRAM_HEADER_POS FRAME_HEADER_SIZE
 #define DATAGRAM_HEADER_SIZE 12*WORD32_BYTE_SIZE
 
 #define HEADER_FRAME_TYPE_POS 3
@@ -18,6 +19,9 @@
 #define UPPM_ACK_FRAME 6
 #define UPPM_FDK_FRAME 15
 #define FSGP_FDK_FRAME 16
+
+#define UPPM_RAW_COMMAND_FRAME 128
+#define UPPM_RAW_ACK_COMM_FRAME 129
 
 #define COMMAND_DATA_POS FRAME_HEADER_SIZE+DATAGRAM_HEADER_SIZE
 
@@ -77,6 +81,6 @@ typedef union
 {
     Datagram_Header_Struct structData;
     uint8_t rawData[DATAGRAM_HEADER_SIZE];
-}Datagram_Header;
+}DatagramHeader;
 //-------------------------------------------------
 #endif /* USER_PROTOCOL_FRAME_DEFINES_H_ */

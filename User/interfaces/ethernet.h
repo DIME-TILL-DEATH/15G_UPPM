@@ -55,6 +55,7 @@ typedef union
 #define UDP_ONLY_HEADER_SIZE 8
 #define UDP_PSEUDO_HEADER_SIZE 12
 #define UDP_PAYLOAD_POSITION UDP_FULL_HEADER_SIZE
+
 typedef struct
 {
     // ETHERNETII

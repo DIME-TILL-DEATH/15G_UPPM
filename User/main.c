@@ -8,15 +8,16 @@
 #include "string.h"
 #include "debug.h"
 
-#include "uart.h"
+//#include "uart.h"
 #include "ethernet.h"
+
 #include "veeprom.h"
+#include "uppm_control.h"
 
 #include "command_fifo.h"
 #include "frame_parser.h"
 
 void EXTI0_IRQHandler(void)  __attribute__((interrupt("WCH-Interrupt-fast")));
-void EXTI15_10_IRQHandler(void)  __attribute__((interrupt(/*"WCH-Interrupt-fast"*/)));
 void TIM3_IRQHandler(void)  __attribute__((interrupt(/*"WCH-Interrupt-fast"*/)));
 
 bool ledState=0;
@@ -34,41 +35,41 @@ void PIN_Init()
     // UART pins
     GPIO_PinRemapConfig(GPIO_Remap_USART2 | GPIO_FullRemap_USART3, ENABLE);
 
-    /* USART2 remap TX-->D.5   RX-->D.6 */
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    /* USART3 remap TX_1-->D.8  RX_1-->D.9 */
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    // Free pins
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
+//    /* USART2 remap TX-->D.5   RX-->D.6 */
+//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+//    GPIO_Init(GPIOD, &GPIO_InitStructure);
+//
+//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+//    GPIO_Init(GPIOD, &GPIO_InitStructure);
+//
+//    /* USART3 remap TX_1-->D.8  RX_1-->D.9 */
+//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+//    GPIO_Init(GPIOD, &GPIO_InitStructure);
+//
+//    // Free pins
+//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+//    GPIO_Init(GPIOD, &GPIO_InitStructure);
 
     // Key - NP & STROBE
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+//    GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_10 | GPIO_Pin_11;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
-
+//    // ?Tst
+//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_10 | GPIO_Pin_11;
+//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+//    GPIO_Init(GPIOC, &GPIO_InitStructure);
 }
 
 void INT_Init()
@@ -83,22 +84,16 @@ void INT_Init()
 
     EXTI_Init(&EXTI_InitStructure);
 
-//    NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
-//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-//    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
-//    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//    NVIC_Init(&NVIC_InitStructure);
-
-    GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource14); //PA14 - STROBE
-    EXTI_InitStructure.EXTI_Line = EXTI_Line14;
-    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
-    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-
-    EXTI_Init(&EXTI_InitStructure);
+//    GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource14); //PA14 - STROBE
+//    EXTI_InitStructure.EXTI_Line = EXTI_Line14;
+//    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+//    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+//    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+//
+//    EXTI_Init(&EXTI_InitStructure);
 
     NVIC_EnableIRQ(EXTI0_IRQn);
-    NVIC_EnableIRQ(EXTI15_10_IRQn);
+//    NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
 void TIM3_Init(void)
@@ -116,7 +111,7 @@ void TIM3_Init(void)
 
     TIM_Cmd(TIM3, ENABLE);
     TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-    NVIC_EnableIRQ(TIM3_IRQn);
+   // NVIC_EnableIRQ(TIM3_IRQn);
 }
 
 int main(void)
@@ -132,10 +127,10 @@ int main(void)
 	VEEPROM_Init();
 	PIN_Init();
 	ETHERNET_Init();
+	UPPM_Init();
 
 	printf("Device serial: %d, ppm number: %d\r\n", VEEPROM_GetSavedData().serial, VEEPROM_GetSavedData().ppmNumber);
 
-    UART_Init();
     TIM3_Init();
     INT_Init();
 
@@ -183,51 +178,22 @@ int main(void)
 // IRQ handlers
 void TIM3_IRQHandler()
 {
-    GPIO_WriteBit(GPIOC, GPIO_Pin_10, (ledState == 0) ? (ledState = Bit_SET) : (ledState = Bit_RESET));
-
-    if(CommFIFO_Count() == 0)
-    {
-        GPIO_WriteBit(GPIOC, GPIO_Pin_11, Bit_SET);
-    }
-    else
-    {
-        GPIO_WriteBit(GPIOC, GPIO_Pin_11, Bit_RESET);
-    }
+//    GPIO_WriteBit(GPIOC, GPIO_Pin_10, (ledState == 0) ? (ledState = Bit_SET) : (ledState = Bit_RESET));
+//
+//    if(CommFIFO_Count() == 0)
+//    {
+//        GPIO_WriteBit(GPIOC, GPIO_Pin_11, Bit_SET);
+//    }
+//    else
+//    {
+//        GPIO_WriteBit(GPIOC, GPIO_Pin_11, Bit_RESET);
+//    }
 
     ETHERNET_SendFdkFrame();
-
     TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 }
 
-uint8_t bufData[4] = {1, 2, 3, 4};
 void EXTI0_IRQHandler(void)
 {
-    GPIO_WriteBit(GPIOC, GPIO_Pin_2, Bit_SET);
-    UPPM_Command_Frame actualComm = CommFIFO_GetData();
-
-//    UART_WriteData(UART_NUM1, &actualComm.index, 4);
-//    UART_WriteData(UART_NUM2, &actualComm.TVRS, 4);
-
-    bufData[0]++;
-    bufData[1]++;
-    bufData[2]++;
-    bufData[3]++;
-
-    UART_WriteData(UART_NUM1, bufData, 4);
-    UART_WriteData(UART_NUM2, bufData, 4);
-
-//    UART_WriteByte(UART_NUM1, actualComm.TVRS&0x000F);
-//    UART_WriteByte(UART_NUM2, actualComm.TVRS&0x000F);
-
-    GPIO_WriteBit(GPIOC, GPIO_Pin_2, Bit_RESET);
-
     EXTI_ClearITPendingBit(EXTI_Line0);
-    printf("INP recieved. TVRS: %d Commands left: %d\r\n", actualComm.TVRS, CommFIFO_Count());
-}
-
-void EXTI15_10_IRQHandler(void)
-{
-    EXTI_ClearITPendingBit(EXTI_Line14);
-   // printf("Strobe counter\r\n");
-
 }

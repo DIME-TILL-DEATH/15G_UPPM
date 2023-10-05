@@ -7,6 +7,9 @@
 
 #include "uppm_command_frame.h"
 #include "uppm_fdk_frame.h"
+#include "uppm_raw_comm_frame.h"
+
+#include "uppm_control.h"
 
 void mConvertEndians(UPPM_Command_Frame* comm);
 
@@ -14,60 +17,113 @@ void parseFrame(const uint8_t* inData, uint32_t inDataLen, uint8_t* outData, uin
 {
     *outDataLen = 0;
 
-    if(inData[HEADER_FRAME_TYPE_POS] == UPPM_COMMAND_FRAME)
+    FrameHeader* recievedFrameHeader = (FrameHeader*)&(inData[0]);
+    DatagramHeader* recievedDatagramHeader = (DatagramHeader*)&(inData[DATAGRAM_HEADER_POS]);
+
+    switch(inData[HEADER_FRAME_TYPE_POS])
     {
-        UPPM_Command_Frame *comand_ptr = (UPPM_Command_Frame *)&(inData[COMMAND_DATA_POS]);
-        UPPM_Command_Frame recieved_command = *comand_ptr;
-
-        mConvertEndians(&recieved_command);
-
-        if(CommFIFO_PutData(recieved_command))
+        case UPPM_COMMAND_FRAME:
         {
-            memcpy(outData, inData, inDataLen);
+            UPPM_Command_Frame *comand_ptr = (UPPM_Command_Frame *)&(inData[COMMAND_DATA_POS]);
+            UPPM_Command_Frame recieved_command = *comand_ptr;
 
-            outData[UPPM_BUFFER_SIZE_LW_POS] = COMMAND_FIFO_SIZE;
-            outData[UPPM_QUEUE_SIZE_LW_POS] = CommFIFO_Count();
+            mConvertEndians(&recieved_command);
 
-            *outDataLen = inDataLen + 16;
+            if(CommFIFO_PutData(recieved_command))
+            {
+                memcpy(outData, inData, inDataLen);
+
+                outData[UPPM_BUFFER_SIZE_LW_POS] = COMMAND_FIFO_SIZE;
+                outData[UPPM_QUEUE_SIZE_LW_POS] = CommFIFO_Count();
+
+                *outDataLen = inDataLen + 16;
+            }
+
+            FrameHeader frameHeader;
+            memset(frameHeader.rawData, 0, FRAME_HEADER_SIZE);
+
+            frameHeader.structData.signature = __builtin_bswap16(FRAME_SIGNATURE);
+            frameHeader.structData.RTK = VEEPROM_GetSavedData().ppmNumber;
+            frameHeader.structData.TK = UPPM_ACK_FRAME;
+            frameHeader.structData.RK = __builtin_bswap32(*outDataLen);
+            frameHeader.structData.RF128 = __builtin_bswap16(*outDataLen/16);
+            frameHeader.structData.PF = 1;
+            frameHeader.structData.SCH = framesCounter;
+            frameHeader.structData.NF = 0;
+
+            DatagramHeader datagramHeader;
+            memset(datagramHeader.rawData, 0, DATAGRAM_HEADER_SIZE);
+
+            datagramHeader.structData.LAYOUT = 4;
+            datagramHeader.structData.LAYOUT_SIZE128 = 3;
+            datagramHeader.structData.RTK = VEEPROM_GetSavedData().ppmNumber;
+            datagramHeader.structData.TK = UPPM_ACK_FRAME;
+            datagramHeader.structData.RK = __builtin_bswap32(*outDataLen - FRAME_HEADER_SIZE);
+
+            datagramHeader.structData.CTRL_OFFSET128 = __builtin_bswap32(UPPM_ACKFRAME_CTRL_OFFSET128);
+            datagramHeader.structData.CTRL_SIZE128 = __builtin_bswap32(UPPM_ACKFRAME_CTRL_SIZE128);
+            datagramHeader.structData.SYNC_OFFSET128 = __builtin_bswap32(UPPM_ACKFRAME_SYNC_OFFSET128);
+            datagramHeader.structData.SYNC_SIZE128 = __builtin_bswap32(UPPM_ACKFRAME_SYNC_SIZE128);;
+            datagramHeader.structData.HEAD_AUX_OFFSET128 = __builtin_bswap32(UPPM_ACKFRAME_AUX_DATA_OFFSET128);
+            datagramHeader.structData.HEAD_AUX_SIZE128 = __builtin_bswap32(UPPM_ACKFRAME_AUX_DATA_SIZE128);
+            datagramHeader.structData.SIGNAL_OFFSET128 = __builtin_bswap32(UPPM_ACKFRAME_SIGNAL_OFFSET128);
+            datagramHeader.structData.SIGNAL_SIZE128 =  __builtin_bswap32(UPPM_ACKFRAME_SIGNAL_SIZE128);
+
+            memcpy(&outData[0], frameHeader.rawData, FRAME_HEADER_SIZE);
+            memcpy(&outData[FRAME_HEADER_SIZE], datagramHeader.rawData, DATAGRAM_HEADER_SIZE);
+            break;
         }
 
-        FrameHeader frameHeader;
-        memset(frameHeader.rawData, 0, FRAME_HEADER_SIZE);
+        case UPPM_RAW_COMMAND_FRAME:
+        {
+            uint8_t* dataPayload = (uint8_t*)&inData[COMMAND_DATA_POS];
+            uint8_t phaseShifterVal = dataPayload[3] & 0x3F;
+            uint8_t filterVal = dataPayload[2] & 0x03;
 
-        frameHeader.structData.signature = __builtin_bswap16(FRAME_SIGNATURE);
-        frameHeader.structData.RTK = VEEPROM_GetSavedData().ppmNumber;
-        frameHeader.structData.TK = UPPM_ACK_FRAME;
-        frameHeader.structData.RK = __builtin_bswap32(*outDataLen);
-        frameHeader.structData.RF128 = __builtin_bswap16(*outDataLen/16);
-        frameHeader.structData.PF = 1;
-        frameHeader.structData.SCH = framesCounter;
-        frameHeader.structData.NF = 0;
+            printf("Recieved raw command frame. Filter: %x, PhaseShifter: %x\r\n", filterVal, phaseShifterVal);
 
-        Datagram_Header datagramHeader;
-        memset(datagramHeader.rawData, 0, DATAGRAM_HEADER_SIZE);
+            UPPM_SetFilter(filterVal);
+            UPPM_SetPhaseShifter(phaseShifterVal);
 
-        datagramHeader.structData.LAYOUT = 4;
-        datagramHeader.structData.LAYOUT_SIZE128 = 3;
-        datagramHeader.structData.RTK = VEEPROM_GetSavedData().ppmNumber;
-        datagramHeader.structData.TK = UPPM_ACK_FRAME;
-        datagramHeader.structData.RK = __builtin_bswap32(*outDataLen - FRAME_HEADER_SIZE);
+            memcpy(outData, inData, inDataLen);
+            *outDataLen = inDataLen;
 
-        datagramHeader.structData.CTRL_OFFSET128 = __builtin_bswap32(UPPM_ACKFRAME_CTRL_OFFSET128);
-        datagramHeader.structData.CTRL_SIZE128 = __builtin_bswap32(UPPM_ACKFRAME_CTRL_SIZE128);
-        datagramHeader.structData.SYNC_OFFSET128 = __builtin_bswap32(UPPM_ACKFRAME_SYNC_OFFSET128);
-        datagramHeader.structData.SYNC_SIZE128 = __builtin_bswap32(UPPM_ACKFRAME_SYNC_SIZE128);;
-        datagramHeader.structData.HEAD_AUX_OFFSET128 = __builtin_bswap32(UPPM_ACKFRAME_AUX_DATA_POS128);
-        datagramHeader.structData.HEAD_AUX_SIZE128 = __builtin_bswap32(UPPM_ACKFRAME_AUX_DATA_SIZE128);
-        datagramHeader.structData.SIGNAL_OFFSET128 = __builtin_bswap32(UPPM_ACKFRAME_SIGNAL_OFFSET128);
-        datagramHeader.structData.SIGNAL_SIZE128 =  __builtin_bswap32(UPPM_ACKFRAME_SIGNAL_SIZE128);
+            FrameHeader frameHeader;
+            memset(frameHeader.rawData, 0, FRAME_HEADER_SIZE);
 
-        memcpy(&outData[0], frameHeader.rawData, FRAME_HEADER_SIZE);
-        memcpy(&outData[FRAME_HEADER_SIZE], datagramHeader.rawData, DATAGRAM_HEADER_SIZE);
+            frameHeader.structData.signature = __builtin_bswap16(FRAME_SIGNATURE);
+            frameHeader.structData.RTK = VEEPROM_GetSavedData().ppmNumber;
+            frameHeader.structData.TK = UPPM_RAW_ACK_COMM_FRAME;
+            frameHeader.structData.RK = __builtin_bswap32(*outDataLen);
+            frameHeader.structData.RF128 = __builtin_bswap16(*outDataLen/16);
+            frameHeader.structData.PF = 1;
+            frameHeader.structData.SCH = framesCounter;
+            frameHeader.structData.NF = 0;
 
-//        printf("Timestamp_lw: %X Index: %d TVRS: %d Command buffer: %d\r\n", recieved_command.timestamp_lw,
-//                                                                             recieved_command.index,
-//                                                                             recieved_command.TVRS,
-//                                                                             CommFIFO_Count());
+            DatagramHeader datagramHeader;
+            memset(datagramHeader.rawData, 0, DATAGRAM_HEADER_SIZE);
+
+            datagramHeader.structData.LAYOUT = 4;
+            datagramHeader.structData.LAYOUT_SIZE128 = 3;
+            datagramHeader.structData.RTK = VEEPROM_GetSavedData().ppmNumber;
+            datagramHeader.structData.TK = UPPM_RAW_ACK_COMM_FRAME;
+            datagramHeader.structData.RK = __builtin_bswap32(*outDataLen - FRAME_HEADER_SIZE);
+
+            datagramHeader.structData.CTRL_OFFSET128 = __builtin_bswap32(UPPM_RAW_COMM_FRAME_CTRL_OFFSET128);
+            datagramHeader.structData.CTRL_SIZE128 = __builtin_bswap32(UPPM_RAW_COMM_FRAME_CTRL_SIZE128);
+            datagramHeader.structData.SYNC_OFFSET128 = __builtin_bswap32(UPPM_RAW_COMM_FRAME_SYNC_OFFSET128);
+            datagramHeader.structData.SYNC_SIZE128 = __builtin_bswap32(UPPM_RAW_COMM_FRAME_SYNC_SIZE128);;
+            datagramHeader.structData.HEAD_AUX_OFFSET128 = __builtin_bswap32(UPPM_RAW_COMM_FRAME_AUX_DATA_OFFSET128);
+            datagramHeader.structData.HEAD_AUX_SIZE128 = __builtin_bswap32(UPPM_RAW_COMM_FRAME_AUX_DATA_SIZE128);
+            datagramHeader.structData.SIGNAL_OFFSET128 = __builtin_bswap32(UPPM_RAW_COMM_FRAME_SIGNAL_OFFSET128);
+            datagramHeader.structData.SIGNAL_SIZE128 =  __builtin_bswap32(UPPM_RAW_COMM_FRAME_SIGNAL_SIZE128);
+
+            memcpy(&outData[0], frameHeader.rawData, FRAME_HEADER_SIZE);
+            memcpy(&outData[FRAME_HEADER_SIZE], datagramHeader.rawData, DATAGRAM_HEADER_SIZE);
+            break;
+        }
+
+        default: printf("reviced UDP frame unknown type, TK: %d, size: %d\r\n", recievedFrameHeader->structData.TK, recievedDatagramHeader->structData.LAYOUT_SIZE128);
     }
 }
 
@@ -95,7 +151,7 @@ void getFdkPayload(uint8_t* data_ptr, uint16_t* dataLen_ptr)
     frameHeader.structData.SCH = framesCounter;
     frameHeader.structData.NF = 0;
 
-    Datagram_Header datagramHeader;
+    DatagramHeader datagramHeader;
     memset(datagramHeader.rawData, 0, DATAGRAM_HEADER_SIZE);
 
     datagramHeader.structData.LAYOUT = 4;

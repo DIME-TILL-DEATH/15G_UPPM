@@ -112,7 +112,7 @@ void ETHERNET_Init()
 
     ETHDRV_Init(IPAddr, GWIPAddr, IPMask, MACAddr);
 
-    IPAddr[3] = IPAddr[3] + VEEPROM_GetSavedData().ppmNumber;
+//    IPAddr[3] = IPAddr[3] + VEEPROM_GetSavedData().ppmNumber;
 
     printf("IP addr: %d.%d.%d.%d\r\n", IPAddr[0], IPAddr[1], IPAddr[2], IPAddr[3]);
 
@@ -206,19 +206,11 @@ void ETHERNET_ParseUdpFrame(const RecievedFrameData* frame)
         memcpy(mstMACAddr, parsedFrameHeader.structData.srcMAC, 6);
         memcpy(mstIPAddr, parsedFrameHeader.structData.srcIpAddress, 4);
 
-//        printf("dst IP: ");
-//        for (uint8_t i = 0; i < 4; i++)
-//        {
-//            printf("%d ", dstIp[i]);
-//        }
-//        printf("\r\n");
-//            printf("port = %d len = %d\r\n", dstPort, udpLength);
-
         uint8_t answer[512];
         uint32_t outDataLen;
 
 
-        parseFrame(&(frame->frameData[UDP_PAYLOAD_POSITION]), NUM_PROTOCOL_BYTES, &(answer[UDP_PAYLOAD_POSITION]), &outDataLen);
+        parseFrame(&(frame->frameData[UDP_PAYLOAD_POSITION]), __builtin_bswap16(parsedFrameHeader.structData.udpLength) - UDP_ONLY_HEADER_SIZE, &(answer[UDP_PAYLOAD_POSITION]), &outDataLen);
 
         if(outDataLen > 0)
         {
